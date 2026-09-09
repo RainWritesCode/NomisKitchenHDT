@@ -1,9 +1,16 @@
-<UserControl x:Class="NomisKitchenHDT.UI.ApmOverlay"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Border Background="#EE1A1A1A" BorderBrush="#33FFFFFF" BorderThickness="1"
-            CornerRadius="4" Padding="10,8" MinWidth="180"
-            Cursor="SizeAll">
+<Window x:Class="NomisKitchenHDT.UI.ApmOverlay"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight"
+        Title="Nomi APM">
+    <Border x:Name="RootBorder" Background="#EE1A1A1A" BorderBrush="#33FFFFFF" BorderThickness="1"
+            CornerRadius="4" Padding="10,8" MinWidth="180" Cursor="SizeAll">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -14,26 +21,18 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="ACTIONS THIS TURN"
-                       Foreground="#B8B8B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" x:Name="LabelActions" Text="ACTIONS THIS TURN"
+                       FontWeight="Bold" VerticalAlignment="Center"/>
             <TextBlock Grid.Row="0" Grid.Column="1" x:Name="ActionsText" Text="0"
-                       Foreground="#F5A623" FontSize="22" FontWeight="Bold"
-                       Margin="14,0,0,0" VerticalAlignment="Center"/>
-
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="PEAK APM"
-                       Foreground="#B8B8B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"
-                       Margin="0,6,0,0"/>
-            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PeakText" Text="0.0"
-                       Foreground="#F5A623" FontSize="22" FontWeight="Bold"
-                       Margin="14,6,0,0" VerticalAlignment="Center"/>
-
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="AVERAGE APM"
-                       Foreground="#B8B8B8" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"
-                       Margin="0,6,0,0"/>
-            <TextBlock Grid.Row="2" Grid.Column="1" x:Name="AverageText" Text="0.0"
-                       Foreground="#F5A623" FontSize="22" FontWeight="Bold"
-                       Margin="14,6,0,0" VerticalAlignment="Center"/>
+                       FontWeight="Bold" Margin="14,0,0,0" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" x:Name="LabelPeak" Text="PEAK APM"
+                       FontWeight="Bold" VerticalAlignment="Center" Margin="0,6,0,0"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PeakText" Text="0"
+                       FontWeight="Bold" Margin="14,6,0,0" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" x:Name="LabelAverage" Text="AVERAGE APM"
+                       FontWeight="Bold" VerticalAlignment="Center" Margin="0,6,0,0"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" x:Name="AverageText" Text="0"
+                       FontWeight="Bold" Margin="14,6,0,0" VerticalAlignment="Center"/>
         </Grid>
     </Border>
-</UserControl>
+</Window>

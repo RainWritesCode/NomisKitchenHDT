@@ -1,19 +1,28 @@
 using System;
-using System.Reflection;
+using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Hearthstone_Deck_Tracker;
+using System.Windows.Interop;
+using System.Windows.Media;
 
 namespace NomisKitchenHDT.UI
 {
-    public partial class ApmOverlay : UserControl
+    public partial class ApmOverlay : Window
     {
-        private readonly PluginConfig _config;
-        private readonly Services.ApmTracker _tracker;
-        private bool _visible;
-        private bool _dragging;
-        private Point _dragOffset;
+        const int GWL_EXSTYLE = -20;
+        const int WS_EX_TRANSPARENT = 0x20;
+        const int WS_EX_LAYERED = 0x80000;
+
+        [DllImport("user32.dll")]
+        static extern int GetWindowLong(IntPtr hwnd, int index);
+        [DllImport("user32.dll")]
+        static extern int SetWindowLong(IntPtr hwnd, int index, int newStyle);
+
+        readonly PluginConfig _config;
+        readonly Services.ApmTracker _tracker;
+        bool _shown;
 
         public ApmOverlay(PluginConfig config, Services.ApmTracker tracker)
         {
@@ -22,77 +31,106 @@ namespace NomisKitchenHDT.UI
             _tracker = tracker;
             _tracker.OnStatsUpdated += UpdateFromTracker;
 
-            Canvas.SetLeft(this, _config.OverlayX);
-            Canvas.SetTop(this, _config.OverlayY);
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = _config.OverlayX;
+            Top = _config.OverlayY;
 
-            MouseLeftButtonDown += OnMouseDown;
-            MouseMove += OnMouseMove;
-            MouseLeftButtonUp += OnMouseUp;
+            MouseLeftButtonDown += OnDragStart;
+            LocationChanged += OnLocationChanged;
+            SourceInitialized += (_, _1) => ApplyLock();
+
+            ApplyStyle();
         }
 
-        private static Canvas GetOverlayCanvas()
+        public new void Show()
         {
-            var overlay = Core.Overlay;
-            if (overlay == null) return null;
-            var field = overlay.GetType().GetField("CanvasInfo",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            return field?.GetValue(overlay) as Canvas;
+            if (_shown) return;
+            base.Show();
+            _shown = true;
+            ApplyLock();
         }
 
-        public void Show()
+        public new void Hide()
         {
-            if (_visible) return;
-            var canvas = GetOverlayCanvas();
-            if (canvas == null) return;
-            if (!canvas.Children.Contains(this))
-                canvas.Children.Add(this);
-            _visible = true;
+            if (!_shown) return;
+            base.Hide();
+            _shown = false;
         }
 
-        public void Hide()
+        public void ApplyStyle()
         {
-            if (!_visible) return;
-            var canvas = GetOverlayCanvas();
-            if (canvas != null && canvas.Children.Contains(this))
-                canvas.Children.Remove(this);
-            _visible = false;
+            try
+            {
+                var font = new FontFamily(string.IsNullOrEmpty(_config.FontFamily) ? "Segoe UI" : _config.FontFamily);
+                var labelBrush = BrushFromHex(_config.LabelColor, "#B8B8B8");
+                var valueBrush = BrushFromHex(_config.ValueColor, "#F5A623");
+                var bgBrush = BrushFromHex(_config.BackgroundColor, "#EE1A1A1A");
+                var borderBrush = BrushFromHex(_config.BorderColor, "#33FFFFFF");
+
+                RootBorder.Background = bgBrush;
+                RootBorder.BorderBrush = borderBrush;
+                RootBorder.LayoutTransform = new ScaleTransform(_config.OverlayScale, _config.OverlayScale);
+
+                foreach (var lbl in new[] { LabelActions, LabelPeak, LabelAverage })
+                {
+                    lbl.FontFamily = font;
+                    lbl.FontSize = _config.LabelFontSize;
+                    lbl.Foreground = labelBrush;
+                }
+                foreach (var v in new[] { ActionsText, PeakText, AverageText })
+                {
+                    v.FontFamily = font;
+                    v.FontSize = _config.ValueFontSize;
+                    v.Foreground = valueBrush;
+                }
+
+                RootBorder.Cursor = _config.LockOverlay ? Cursors.Arrow : Cursors.SizeAll;
+                ApplyLock();
+            }
+            catch { }
         }
 
-        private void UpdateFromTracker()
+        void ApplyLock()
+        {
+            try
+            {
+                var hwnd = new WindowInteropHelper(this).Handle;
+                if (hwnd == IntPtr.Zero) return;
+                int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
+                if (_config.LockOverlay) ex |= WS_EX_TRANSPARENT | WS_EX_LAYERED;
+                else ex &= ~WS_EX_TRANSPARENT;
+                SetWindowLong(hwnd, GWL_EXSTYLE, ex);
+            }
+            catch { }
+        }
+
+        void UpdateFromTracker()
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                ActionsText.Text = _tracker.ActionsThisTurn.ToString();
-                PeakText.Text = _tracker.PeakApm.ToString();
-                AverageText.Text = _tracker.AverageApm.ToString();
+                var fmt = "F" + Math.Max(0, Math.Min(3, _config.DecimalPlaces));
+                ActionsText.Text = _tracker.ActionsThisTurn.ToString(CultureInfo.InvariantCulture);
+                PeakText.Text = _tracker.PeakApm.ToString(fmt, CultureInfo.InvariantCulture);
+                AverageText.Text = _tracker.AverageApm.ToString(fmt, CultureInfo.InvariantCulture);
             }));
         }
 
-        private void OnMouseDown(object sender, MouseButtonEventArgs e)
+        void OnDragStart(object sender, MouseButtonEventArgs e)
         {
-            _dragging = true;
-            _dragOffset = e.GetPosition(this);
-            CaptureMouse();
+            if (_config.LockOverlay) return;
+            try { DragMove(); } catch { }
         }
 
-        private void OnMouseMove(object sender, MouseEventArgs e)
+        void OnLocationChanged(object sender, EventArgs e)
         {
-            if (!_dragging) return;
-            var canvas = GetOverlayCanvas();
-            if (canvas == null) return;
-            var pos = e.GetPosition(canvas);
-            Canvas.SetLeft(this, pos.X - _dragOffset.X);
-            Canvas.SetTop(this, pos.Y - _dragOffset.Y);
+            _config.OverlayX = Left;
+            _config.OverlayY = Top;
         }
 
-        private void OnMouseUp(object sender, MouseButtonEventArgs e)
+        static SolidColorBrush BrushFromHex(string hex, string fallback)
         {
-            if (!_dragging) return;
-            _dragging = false;
-            ReleaseMouseCapture();
-            _config.OverlayX = Canvas.GetLeft(this);
-            _config.OverlayY = Canvas.GetTop(this);
-            _config.Save();
+            try { return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); }
+            catch { return new SolidColorBrush((Color)ColorConverter.ConvertFromString(fallback)); }
         }
     }
 }

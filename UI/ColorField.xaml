@@ -1,0 +1,25 @@
+<UserControl x:Class="NomisKitchenHDT.UI.ColorField"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="110"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" x:Name="Swatch" Background="#00000000" BorderBrush="#666"
+                BorderThickness="1" Width="28" Height="24"
+                Cursor="Hand" MouseLeftButtonUp="Swatch_Click">
+            <Border.ToolTip>Click to pick color</Border.ToolTip>
+        </Border>
+        <StackPanel Grid.Column="1" Orientation="Vertical" Margin="8,0,8,0" VerticalAlignment="Center">
+            <TextBlock Text="Alpha" Foreground="#8A8A8A" FontSize="10"/>
+            <Slider x:Name="AlphaSlider" Minimum="0" Maximum="255" TickFrequency="16"
+                    IsSnapToTickEnabled="False" ValueChanged="AlphaSlider_Changed"/>
+        </StackPanel>
+        <Button Grid.Column="2" Content="Transparent" Padding="6,2" Margin="0,0,4,0" Click="Transparent_Click"/>
+        <TextBox Grid.Column="3" x:Name="HexBox" VerticalAlignment="Center"
+                 LostFocus="HexBox_LostFocus" KeyDown="HexBox_KeyDown"/>
+    </Grid>
+</UserControl>

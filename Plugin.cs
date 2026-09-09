@@ -60,11 +60,13 @@ namespace NomisKitchenHDT
         void OpenSettings()
         {
             var win = new SettingsWindow(Config);
+            win.StyleApplied += () => Overlay?.ApplyStyle();
             win.Closed += (_, _1) =>
             {
                 Config.Save();
                 Disabler.SyncWithSetting();
                 if (Config.ShowApmOverlay) Overlay.Show(); else Overlay.Hide();
+                Overlay?.ApplyStyle();
             };
             win.Show();
         }

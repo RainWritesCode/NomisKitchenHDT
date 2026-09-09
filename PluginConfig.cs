@@ -14,7 +14,18 @@ namespace NomisKitchenHDT
 
         public string HearthstoneDir { get; set; } = "";
 
-        private static string ConfigPath =>
+        public string FontFamily { get; set; } = "Segoe UI";
+        public double LabelFontSize { get; set; } = 11;
+        public double ValueFontSize { get; set; } = 22;
+        public string BackgroundColor { get; set; } = "#EE1A1A1A";
+        public string BorderColor { get; set; } = "#33FFFFFF";
+        public string LabelColor { get; set; } = "#B8B8B8";
+        public string ValueColor { get; set; } = "#F5A623";
+        public int DecimalPlaces { get; set; } = 1;
+        public double OverlayScale { get; set; } = 1.0;
+        public bool LockOverlay { get; set; } = false;
+
+        static string ConfigPath =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "HearthstoneDeckTracker",

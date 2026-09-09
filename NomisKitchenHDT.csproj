@@ -43,5 +43,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\com.community.hs.NomiHatesAbbreviation.dll" Condition="Exists('Resources\com.community.hs.NomiHatesAbbreviation.dll')" />
+    <EmbeddedResource Include="Resources\com.community.hs.NomisKitchenApm.dll" Condition="Exists('Resources\com.community.hs.NomisKitchenApm.dll')" />
   </ItemGroup>
 </Project>

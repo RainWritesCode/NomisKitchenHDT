@@ -42,6 +42,7 @@ Name: "custom";  Description: "Custom install";  Flags: iscustom
 [Components]
 Name: "hdt";     Description: "HDT plugin (APM overlay)";        Types: full hdt custom; Flags: fixed
 Name: "bepinex"; Description: "BepInEx runtime (if missing)";    Types: full custom
+Name: "apm";     Description: "APM provider (for the overlay)";  Types: full hdt custom
 Name: "numfix";  Description: "Disable abbreviation";            Types: full custom
 
 [Files]
@@ -49,6 +50,10 @@ Source: "..\bin\Release\NomisKitchenHDT.dll"; DestDir: "{app}"; Components: hdt;
 
 Source: "..\Resources\com.community.hs.NomiHatesAbbreviation.dll"; DestDir: "{code:GetHsDir}\BepInEx\plugins"; \
     Components: numfix; Flags: ignoreversion external skipifsourcedoesntexist; \
+    Check: HsDirIsValid
+
+Source: "..\Resources\com.community.hs.NomisKitchenApm.dll"; DestDir: "{code:GetHsDir}\BepInEx\plugins"; \
+    Components: apm; Flags: ignoreversion external skipifsourcedoesntexist; \
     Check: HsDirIsValid
 
 Source: "BepInEx\*"; DestDir: "{code:GetHsDir}"; \
@@ -146,7 +151,7 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
   if PageID = HsDirPage.ID then begin
-    if not (WizardIsComponentSelected('numfix') or WizardIsComponentSelected('bepinex')) then
+    if not (WizardIsComponentSelected('numfix') or WizardIsComponentSelected('bepinex') or WizardIsComponentSelected('apm')) then
       Result := True;
   end;
 end;

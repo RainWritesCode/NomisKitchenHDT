@@ -63,8 +63,8 @@ namespace NomisKitchenHDT.UI
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 ActionsText.Text = _tracker.ActionsThisTurn.ToString();
-                PeakText.Text = _tracker.PeakApm.ToString("F1");
-                AverageText.Text = _tracker.AverageApm.ToString("F1");
+                PeakText.Text = _tracker.PeakApm.ToString();
+                AverageText.Text = _tracker.AverageApm.ToString();
             }));
         }
 

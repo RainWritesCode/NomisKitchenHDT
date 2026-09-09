@@ -1,8 +1,5 @@
 using System;
-using System.Reflection;
 using System.Windows.Controls;
-using Hearthstone_Deck_Tracker;
-using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Plugins;
 using NomisKitchenHDT.Services;
 using NomisKitchenHDT.UI;
@@ -18,11 +15,12 @@ namespace NomisKitchenHDT
         public Version Version => new Version(1, 0, 0);
         public MenuItem MenuItem => _menuItem;
 
-        private MenuItem _menuItem;
+        MenuItem _menuItem;
         internal PluginConfig Config;
         internal ApmTracker Tracker;
         internal ApmOverlay Overlay;
         internal AbbreviationDisabler Disabler;
+        internal ApmProviderInstaller ApmInstaller;
 
         internal static Plugin Instance;
 
@@ -34,6 +32,9 @@ namespace NomisKitchenHDT
             Disabler = new AbbreviationDisabler(Config);
             Disabler.SyncWithSetting();
 
+            ApmInstaller = new ApmProviderInstaller(Config);
+            ApmInstaller.EnsureInstalled();
+
             Tracker = new ApmTracker();
             Tracker.Start();
 
@@ -43,12 +44,6 @@ namespace NomisKitchenHDT
 
             _menuItem = new MenuItem { Header = "Nomi's Kitchen" };
             _menuItem.Click += (_, _1) => OpenSettings();
-
-            GameEvents.OnGameStart.Add(OnGameStart);
-            GameEvents.OnGameEnd.Add(OnGameEnd);
-            GameEvents.OnTurnStart.Add(_ => Tracker.OnTurnStart());
-            GameEvents.OnPlayerPlay.Add(_ => Tracker.OnPlayerAction("play"));
-            GameEvents.OnPlayerHeroPower.Add(() => Tracker.OnPlayerAction("hero_power"));
         }
 
         public void OnUnload()
@@ -62,7 +57,7 @@ namespace NomisKitchenHDT
         public void OnUpdate() { }
         public void OnButtonPress() => OpenSettings();
 
-        private void OpenSettings()
+        void OpenSettings()
         {
             var win = new SettingsWindow(Config);
             win.Closed += (_, _1) =>
@@ -73,8 +68,5 @@ namespace NomisKitchenHDT
             };
             win.Show();
         }
-
-        private void OnGameStart() => Tracker.OnGameStart();
-        private void OnGameEnd() => Tracker.OnGameEnd();
     }
 }

@@ -1,32 +1,32 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO.MemoryMappedFiles;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Timers;
 
 namespace NomisKitchenHDT.Services
 {
     public class ApmTracker
     {
-        private const int WindowSeconds = 4;
-        private const int SampleMs = 500;
+        const string MmfName = "NomisKitchenApm";
+        const int MmfSize = 512;
 
-        private readonly object _lock = new object();
-        private readonly List<Sample> _samples = new List<Sample>();
-        private Timer _timer;
+        MemoryMappedFile _mmf;
+        MemoryMappedViewAccessor _accessor;
+        Timer _timer;
+        readonly byte[] _buffer = new byte[MmfSize];
 
+        public bool InGame { get; private set; }
         public int ActionsThisTurn { get; private set; }
-        public double CurrentApm { get; private set; }
-        public double PeakApm { get; private set; }
-        public double AverageApm { get; private set; }
-
-        private int _totalGameActions;
-        private DateTime _gameStart = DateTime.MinValue;
+        public int CurrentApm { get; private set; }
+        public int PeakApm { get; private set; }
+        public int AverageApm { get; private set; }
 
         public event Action OnStatsUpdated;
 
         public void Start()
         {
-            _timer = new Timer(SampleMs) { AutoReset = true };
+            _timer = new Timer(500) { AutoReset = true };
             _timer.Elapsed += (_, _1) => Tick();
             _timer.Start();
         }
@@ -36,74 +36,60 @@ namespace NomisKitchenHDT.Services
             _timer?.Stop();
             _timer?.Dispose();
             _timer = null;
+            try { _accessor?.Dispose(); _accessor = null; } catch { }
+            try { _mmf?.Dispose(); _mmf = null; } catch { }
         }
 
-        public void OnGameStart()
+        void Tick()
         {
-            lock (_lock)
+            if (_accessor == null && !TryOpen()) return;
+
+            try
             {
-                _samples.Clear();
-                ActionsThisTurn = 0;
-                CurrentApm = 0;
-                PeakApm = 0;
-                AverageApm = 0;
-                _totalGameActions = 0;
-                _gameStart = DateTime.UtcNow;
+                _accessor.ReadArray(0, _buffer, 0, MmfSize);
+                int len = 0;
+                while (len < MmfSize && _buffer[len] != 0) len++;
+                if (len == 0) { InGame = false; return; }
+
+                var json = Encoding.UTF8.GetString(_buffer, 0, len);
+                InGame = ParseBool(json, "inGame");
+                ActionsThisTurn = ParseInt(json, "actionsThisTurn");
+                CurrentApm = ParseInt(json, "currentApm");
+                PeakApm = ParseInt(json, "peakApm");
+                AverageApm = ParseInt(json, "averageApm");
+
+                OnStatsUpdated?.Invoke();
             }
-            OnStatsUpdated?.Invoke();
-        }
-
-        public void OnGameEnd() { }
-
-        public void OnTurnStart()
-        {
-            lock (_lock)
+            catch
             {
-                ActionsThisTurn = 0;
-            }
-        }
-
-        public void OnPlayerAction(string kind)
-        {
-            lock (_lock)
-            {
-                ActionsThisTurn++;
-                _totalGameActions++;
+                try { _accessor?.Dispose(); _accessor = null; _mmf?.Dispose(); _mmf = null; } catch { }
             }
         }
 
-        private void Tick()
+        bool TryOpen()
         {
-            lock (_lock)
+            try
             {
-                var now = DateTime.UtcNow;
-                var windowStart = now.AddSeconds(-WindowSeconds);
-                _samples.RemoveAll(s => s.Timestamp < windowStart);
-                _samples.Add(new Sample { Timestamp = now, Actions = ActionsThisTurn });
-
-                if (_samples.Count >= 2)
-                {
-                    var oldest = _samples[0];
-                    var newest = _samples[_samples.Count - 1];
-                    var diff = newest.Actions - oldest.Actions;
-                    var seconds = (newest.Timestamp - oldest.Timestamp).TotalSeconds;
-                    CurrentApm = seconds > 0 ? Math.Max(0, diff / seconds * 60) : 0;
-                    if (CurrentApm > PeakApm) PeakApm = CurrentApm;
-                }
-
-                if (_gameStart != DateTime.MinValue)
-                {
-                    var minutes = (now - _gameStart).TotalMinutes;
-                    AverageApm = minutes > 0 ? _totalGameActions / minutes : 0;
-                }
+                _mmf = MemoryMappedFile.OpenExisting(MmfName);
+                _accessor = _mmf.CreateViewAccessor(0, MmfSize, MemoryMappedFileAccess.Read);
+                return true;
             }
-            OnStatsUpdated?.Invoke();
+            catch
+            {
+                return false;
+            }
         }
 
-        private struct Sample
+        static int ParseInt(string json, string key)
         {
-            public DateTime Timestamp;
-            public int Actions;
+            var m = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*(-?\\d+)");
+            return m.Success ? int.Parse(m.Groups[1].Value) : 0;
+        }
+
+        static bool ParseBool(string json, string key)
+        {
+            var m = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*(true|false)");
+            return m.Success && m.Groups[1].Value == "true";
         }
     }
 }

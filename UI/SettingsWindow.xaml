@@ -1,0 +1,28 @@
+<Window x:Class="NomisKitchenHDT.UI.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nomi's Kitchen" Height="260" Width="420"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="Nomi's Kitchen — Battlegrounds QoL"
+                   Foreground="#F5A623" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
+        <CheckBox Grid.Row="1" x:Name="DisableAbbreviationCheck"
+                  Content="Disable abbreviation (needs Hearthstone restart)"
+                  Foreground="White" Margin="0,4"/>
+        <CheckBox Grid.Row="2" x:Name="ShowApmCheck"
+                  Content="Show APM overlay"
+                  Foreground="White" Margin="0,4"/>
+        <TextBlock Grid.Row="3" x:Name="StatusText" Foreground="#B8B8B8" FontSize="12"
+                   TextWrapping="Wrap" Margin="0,12,0,0"/>
+        <Button Grid.Row="4" Content="Close" Width="80" HorizontalAlignment="Right"
+                Click="OnClose"/>
+    </Grid>
+</Window>

@@ -24,8 +24,6 @@ A Hearthstone Deck Tracker plugin for Battlegrounds streamers. Ships two quality
 
 When you flip the toggle on in the settings window, the plugin drops the companion DLL. When you flip it off, the plugin removes it. Either way you need to restart Hearthstone for the change to take effect.
 
-If Nomi's Kitchen cannot find your Hearthstone install (For the players who moved it out of `Program Files (x86)`), enter the full path in the settings window and save.
-
 ## Using the APM overlay
 
 Turn it on in the settings window. A draggable card appears in the top-left of the Hearthstone window. The Position of the window is remembered across HDT restarts.

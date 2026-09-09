@@ -14,7 +14,7 @@ A Hearthstone Deck Tracker plugin for Battlegrounds streamers. Ships two quality
    Grab the `NomisKitchenHDT-vX.Y.Z.zip` from the [Releases](../../releases) page and extract it anywhere.
 
 **3. Run the installer**
-   Double-click `install.bat` in the extracted folder. It drops the DLL into the right HDT plugin folder and prints the next steps.
+   Run the exe installer. It drops the DLL into the right HDT plugin folder and installs the required libraries.
 
 **4. Turn it on inside HDT**
    Restart HDT. Open Options → Tracker → Plugins. Check the box next to "Nomi's Kitchen". Click "Settings" to configure it.

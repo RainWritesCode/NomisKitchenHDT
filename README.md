@@ -37,4 +37,6 @@ Open `%APPDATA%\HearthstoneDeckTracker\Plugins\NomisKitchenHDT\` and delete the 
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+GNU AGPL v3. See [LICENSE](LICENSE). Any fork or derivative, including anything served over a network, must keep its source public under the same license.
+
+See [NOTICE](NOTICE) for the author's request on AI-generated reuse.

@@ -29,7 +29,6 @@ namespace NomisKitchenHDT.Services
             {
                 @"C:\Program Files (x86)\Hearthstone",
                 @"C:\Program Files\Hearthstone",
-                @"I:\Hearthstone",
             })
             {
                 var p = Path.Combine(candidate, "BepInEx", "plugins");

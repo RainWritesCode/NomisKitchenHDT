@@ -99,12 +99,11 @@ begin
   Result := TryReadHsRegistry();
   if Result <> '' then exit;
 
-  SetArrayLength(candidates, 5);
+  SetArrayLength(candidates, 4);
   candidates[0] := ExpandConstant('{pf32}\Hearthstone');
   candidates[1] := ExpandConstant('{pf}\Hearthstone');
   candidates[2] := 'C:\Program Files (x86)\Hearthstone';
   candidates[3] := 'C:\Program Files\Hearthstone';
-  candidates[4] := 'I:\Hearthstone';
 
   for i := 0 to GetArrayLength(candidates) - 1 do
     if FileExists(candidates[i] + '\Hearthstone.exe') then begin

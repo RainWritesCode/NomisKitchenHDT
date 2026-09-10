@@ -1,9 +1,8 @@
 using System;
-using System.Globalization;
 using System.IO.MemoryMappedFiles;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Timers;
+using NomisKitchenHDT.Utils;
 
 namespace NomisKitchenHDT.Services
 {
@@ -52,11 +51,11 @@ namespace NomisKitchenHDT.Services
                 if (len == 0) { InGame = false; return; }
 
                 var json = Encoding.UTF8.GetString(_buffer, 0, len);
-                InGame = ParseBool(json, "inGame");
-                ActionsThisTurn = ParseInt(json, "actionsThisTurn");
-                CurrentApm = ParseDouble(json, "currentApm");
-                PeakApm = ParseDouble(json, "peakApm");
-                AverageApm = ParseDouble(json, "averageApm");
+                InGame = JsonUtils.ParseBool(json, "inGame");
+                ActionsThisTurn = JsonUtils.ParseInt(json, "actionsThisTurn");
+                CurrentApm = JsonUtils.ParseDouble(json, "currentApm");
+                PeakApm = JsonUtils.ParseDouble(json, "peakApm");
+                AverageApm = JsonUtils.ParseDouble(json, "averageApm");
 
                 OnStatsUpdated?.Invoke();
             }
@@ -75,24 +74,6 @@ namespace NomisKitchenHDT.Services
                 return true;
             }
             catch { return false; }
-        }
-
-        static int ParseInt(string json, string key)
-        {
-            var m = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*(-?\\d+)");
-            return m.Success ? int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) : 0;
-        }
-
-        static double ParseDouble(string json, string key)
-        {
-            var m = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?)");
-            return m.Success ? double.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) : 0;
-        }
-
-        static bool ParseBool(string json, string key)
-        {
-            var m = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*(true|false)");
-            return m.Success && m.Groups[1].Value == "true";
         }
     }
 }

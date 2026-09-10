@@ -9,19 +9,26 @@ namespace NomisKitchenHDT.UI
     public partial class SettingsWindow : Window
     {
         readonly PluginConfig _config;
+        readonly Services.UpdateChecker _updater;
         bool _loading = true;
 
         public event Action StyleApplied;
 
-        public SettingsWindow(PluginConfig config)
+        public SettingsWindow(PluginConfig config, Services.UpdateChecker updater)
         {
             InitializeComponent();
             _config = config;
+            _updater = updater;
 
             foreach (var f in System.Windows.Media.Fonts.SystemFontFamilies.Select(x => x.Source).OrderBy(x => x))
                 FontCombo.Items.Add(f);
 
             LoadFromConfig();
+
+            AutoUpdateCheck.IsChecked = _config.AutoCheckUpdates;
+            AutoUpdateCheck.Checked += (_, _1) => { _config.AutoCheckUpdates = true; _config.Save(); };
+            AutoUpdateCheck.Unchecked += (_, _1) => { _config.AutoCheckUpdates = false; _config.Save(); };
+            if (_updater != null && _updater.UpdateAvailable) ShowUpdateAvailable();
 
             DisableAbbreviationCheck.Checked += (_, _1) => { _config.DisableAbbreviation = true; UpdateStatus(); };
             DisableAbbreviationCheck.Unchecked += (_, _1) => { _config.DisableAbbreviation = false; UpdateStatus(); };
@@ -124,6 +131,39 @@ namespace NomisKitchenHDT.UI
             _config.Save();
             StyleApplied?.Invoke();
             Close();
+        }
+
+        async void OnCheckUpdate(object sender, RoutedEventArgs e)
+        {
+            if (_updater == null) return;
+            UpdateStatusText.Text = "Checking...";
+            CheckUpdateButton.IsEnabled = false;
+            var available = await _updater.CheckAsync();
+            CheckUpdateButton.IsEnabled = true;
+            if (available) ShowUpdateAvailable();
+            else UpdateStatusText.Text = "Up to date.";
+        }
+
+        void ShowUpdateAvailable()
+        {
+            UpdateStatusText.Text = "Update available: v" + _updater.LatestVersion;
+            UpdateButton.Visibility = Visibility.Visible;
+        }
+
+        async void OnDownloadUpdate(object sender, RoutedEventArgs e)
+        {
+            if (_updater == null) return;
+            UpdateButton.IsEnabled = false;
+            UpdateStatusText.Text = "Downloading...";
+            var ok = await _updater.DownloadAndRunAsync();
+            if (ok)
+                UpdateStatusText.Text = "Installer launched. Close HDT when it asks.";
+            else
+            {
+                UpdateStatusText.Text = "Download failed. Opening release page.";
+                try { System.Diagnostics.Process.Start(_updater.ReleaseUrl ?? "https://github.com/RainWritesCode/NomisKitchenHDT/releases"); } catch { }
+            }
+            UpdateButton.IsEnabled = true;
         }
     }
 }

@@ -1,28 +1,22 @@
 using System;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
+using ApiCore = Hearthstone_Deck_Tracker.API.Core;
+using Hearthstone_Deck_Tracker.Utility.Extensions;
 
 namespace NomisKitchenHDT.UI
 {
-    public partial class ApmOverlay : Window
+    public partial class ApmOverlay : UserControl
     {
-        const int GWL_EXSTYLE = -20;
-        const int WS_EX_TRANSPARENT = 0x20;
-        const int WS_EX_LAYERED = 0x80000;
-
-        [DllImport("user32.dll")]
-        static extern int GetWindowLong(IntPtr hwnd, int index);
-        [DllImport("user32.dll")]
-        static extern int SetWindowLong(IntPtr hwnd, int index, int newStyle);
-
         readonly PluginConfig _config;
         readonly Services.ApmTracker _tracker;
-        bool _shown;
+        bool _visible;
+        bool _dragging;
+        Point _dragStart;
+        double _startLeft, _startTop;
 
         public ApmOverlay(PluginConfig config, Services.ApmTracker tracker)
         {
@@ -31,30 +25,34 @@ namespace NomisKitchenHDT.UI
             _tracker = tracker;
             _tracker.OnStatsUpdated += UpdateFromTracker;
 
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = _config.OverlayX;
-            Top = _config.OverlayY;
-
-            MouseLeftButtonDown += OnDragStart;
-            LocationChanged += OnLocationChanged;
-            SourceInitialized += (_, _1) => ApplyLock();
+            MouseLeftButtonDown += OnDown;
+            MouseLeftButtonUp += OnUp;
+            MouseMove += OnMove;
 
             ApplyStyle();
         }
 
-        public new void Show()
+        public void Show()
         {
-            if (_shown) return;
-            base.Show();
-            _shown = true;
-            ApplyLock();
+            if (_visible) return;
+            var canvas = ApiCore.OverlayCanvas;
+            if (canvas == null) return;
+            if (!canvas.Children.Contains(this))
+                canvas.Children.Add(this);
+            Panel.SetZIndex(this, 10000);
+            Canvas.SetLeft(this, _config.OverlayX);
+            Canvas.SetTop(this, _config.OverlayY);
+            OverlayExtensions.SetIsOverlayHitTestVisible(this, !_config.LockOverlay);
+            _visible = true;
         }
 
-        public new void Hide()
+        public void Hide()
         {
-            if (!_shown) return;
-            base.Hide();
-            _shown = false;
+            if (!_visible) return;
+            var canvas = ApiCore.OverlayCanvas;
+            if (canvas != null && canvas.Children.Contains(this))
+                canvas.Children.Remove(this);
+            _visible = false;
         }
 
         public void ApplyStyle()
@@ -70,6 +68,7 @@ namespace NomisKitchenHDT.UI
                 RootBorder.Background = bgBrush;
                 RootBorder.BorderBrush = borderBrush;
                 RootBorder.LayoutTransform = new ScaleTransform(_config.OverlayScale, _config.OverlayScale);
+                RootBorder.Cursor = _config.LockOverlay ? Cursors.Arrow : Cursors.SizeAll;
 
                 foreach (var lbl in new[] { LabelActions, LabelPeak, LabelAverage })
                 {
@@ -84,22 +83,7 @@ namespace NomisKitchenHDT.UI
                     v.Foreground = valueBrush;
                 }
 
-                RootBorder.Cursor = _config.LockOverlay ? Cursors.Arrow : Cursors.SizeAll;
-                ApplyLock();
-            }
-            catch { }
-        }
-
-        void ApplyLock()
-        {
-            try
-            {
-                var hwnd = new WindowInteropHelper(this).Handle;
-                if (hwnd == IntPtr.Zero) return;
-                int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
-                if (_config.LockOverlay) ex |= WS_EX_TRANSPARENT | WS_EX_LAYERED;
-                else ex &= ~WS_EX_TRANSPARENT;
-                SetWindowLong(hwnd, GWL_EXSTYLE, ex);
+                OverlayExtensions.SetIsOverlayHitTestVisible(this, !_config.LockOverlay);
             }
             catch { }
         }
@@ -115,17 +99,49 @@ namespace NomisKitchenHDT.UI
             }));
         }
 
-        void OnDragStart(object sender, MouseButtonEventArgs e)
+        void OnDown(object sender, MouseButtonEventArgs e)
         {
             if (_config.LockOverlay) return;
-            try { DragMove(); } catch { }
+            var canvas = ApiCore.OverlayCanvas;
+            if (canvas == null) return;
+            _dragging = true;
+            _dragStart = e.GetPosition(canvas);
+            _startLeft = SafeCoord(Canvas.GetLeft(this), _config.OverlayX);
+            _startTop = SafeCoord(Canvas.GetTop(this), _config.OverlayY);
+            CaptureMouse();
+            e.Handled = true;
         }
 
-        void OnLocationChanged(object sender, EventArgs e)
+        void OnMove(object sender, MouseEventArgs e)
         {
-            _config.OverlayX = Left;
-            _config.OverlayY = Top;
+            if (!_dragging) return;
+            var canvas = ApiCore.OverlayCanvas;
+            if (canvas == null) return;
+            var p = e.GetPosition(canvas);
+            double newLeft = _startLeft + (p.X - _dragStart.X);
+            double newTop = _startTop + (p.Y - _dragStart.Y);
+
+            double maxLeft = Math.Max(0, canvas.ActualWidth - ActualWidth);
+            double maxTop = Math.Max(0, canvas.ActualHeight - ActualHeight);
+            if (maxLeft > 0) newLeft = Math.Max(0, Math.Min(newLeft, maxLeft));
+            if (maxTop > 0) newTop = Math.Max(0, Math.Min(newTop, maxTop));
+
+            Canvas.SetLeft(this, newLeft);
+            Canvas.SetTop(this, newTop);
         }
+
+        void OnUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!_dragging) return;
+            _dragging = false;
+            ReleaseMouseCapture();
+            _config.OverlayX = SafeCoord(Canvas.GetLeft(this), _config.OverlayX);
+            _config.OverlayY = SafeCoord(Canvas.GetTop(this), _config.OverlayY);
+            _config.Save();
+            e.Handled = true;
+        }
+
+        static double SafeCoord(double v, double fallback) => double.IsNaN(v) ? fallback : v;
 
         static SolidColorBrush BrushFromHex(string hex, string fallback)
         {

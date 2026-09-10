@@ -1,14 +1,6 @@
-<Window x:Class="NomisKitchenHDT.UI.ApmOverlay"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        WindowStyle="None"
-        AllowsTransparency="True"
-        Background="Transparent"
-        Topmost="True"
-        ShowInTaskbar="False"
-        ResizeMode="NoResize"
-        SizeToContent="WidthAndHeight"
-        Title="Nomi APM">
+<UserControl x:Class="NomisKitchenHDT.UI.ApmOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Border x:Name="RootBorder" Background="#EE1A1A1A" BorderBrush="#33FFFFFF" BorderThickness="1"
             CornerRadius="4" Padding="10,8" MinWidth="180" Cursor="SizeAll">
         <Grid>
@@ -35,4 +27,4 @@
                        FontWeight="Bold" Margin="14,6,0,0" VerticalAlignment="Center"/>
         </Grid>
     </Border>
-</Window>
+</UserControl>

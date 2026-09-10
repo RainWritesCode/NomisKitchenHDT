@@ -12,7 +12,7 @@ namespace NomisKitchenHDT
         public string Description => "Battlegrounds QoL: disable board number abbreviation, live APM overlay.";
         public string Author => "RainWritesCode";
         public string ButtonText => "Settings";
-        public Version Version => new Version(1, 0, 0);
+        public Version Version => new Version(1, 0, 1);
         public MenuItem MenuItem => _menuItem;
 
         MenuItem _menuItem;
@@ -21,6 +21,7 @@ namespace NomisKitchenHDT
         internal ApmOverlay Overlay;
         internal AbbreviationDisabler Disabler;
         internal ApmProviderInstaller ApmInstaller;
+        internal UpdateChecker Updater;
 
         internal static Plugin Instance;
 
@@ -44,6 +45,31 @@ namespace NomisKitchenHDT
 
             _menuItem = new MenuItem { Header = "Nomi's Kitchen" };
             _menuItem.Click += (_, _1) => OpenSettings();
+
+            Updater = new UpdateChecker(Version);
+            if (Config.AutoCheckUpdates)
+                _ = CheckAndPromptAsync();
+        }
+
+        async System.Threading.Tasks.Task CheckAndPromptAsync()
+        {
+            var available = await Updater.CheckAsync();
+            if (!available) return;
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null) return;
+            dispatcher.BeginInvoke(new Action(async () =>
+            {
+                var result = System.Windows.MessageBox.Show(
+                    $"Nomi's Kitchen v{Updater.LatestVersion} is available (you have v{Version}).\n\nDownload and install now? Hearthstone Deck Tracker will close so the update can apply.",
+                    "Nomi's Kitchen update",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Information);
+                if (result != System.Windows.MessageBoxResult.Yes) return;
+                var ok = await Updater.DownloadAndRunAsync();
+                if (ok) System.Windows.Application.Current.Shutdown();
+                else System.Windows.MessageBox.Show("Update download failed. Try the button in Nomi's Kitchen settings, or grab it from the Releases page.",
+                    "Nomi's Kitchen", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }));
         }
 
         public void OnUnload()
@@ -59,7 +85,7 @@ namespace NomisKitchenHDT
 
         void OpenSettings()
         {
-            var win = new SettingsWindow(Config);
+            var win = new SettingsWindow(Config, Updater);
             win.StyleApplied += () => Overlay?.ApplyStyle();
             win.Closed += (_, _1) =>
             {

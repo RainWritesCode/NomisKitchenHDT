@@ -24,6 +24,7 @@ namespace NomisKitchenHDT
         public int DecimalPlaces { get; set; } = 1;
         public double OverlayScale { get; set; } = 1.0;
         public bool LockOverlay { get; set; } = false;
+        public bool AutoCheckUpdates { get; set; } = true;
 
         static string ConfigPath =>
             Path.Combine(

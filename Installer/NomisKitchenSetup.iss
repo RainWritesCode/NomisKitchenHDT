@@ -1,6 +1,6 @@
 #define AppName "Nomi's Kitchen"
 #define AppShortName "NomisKitchenHDT"
-#define AppVersion "1.0.0"
+#define AppVersion "1.0.1"
 #define AppPublisher "RainWritesCode"
 #define AppURL "https://github.com/RainWritesCode/NomisKitchenHDT"
 
@@ -25,6 +25,9 @@ OutputDir=..\bin\Installer
 OutputBaseFilename=NomisKitchenSetup-v{#AppVersion}
 Compression=lzma2/max
 SolidCompression=yes
+CloseApplications=yes
+CloseApplicationsFilter=*.dll,*.exe
+RestartApplications=no
 WizardStyle=modern
 WizardResizable=no
 AllowNoIcons=yes

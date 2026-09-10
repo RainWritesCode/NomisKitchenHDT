@@ -1,6 +1,6 @@
 #define AppName "Nomi's Kitchen"
 #define AppShortName "NomisKitchenHDT"
-#define AppVersion "1.0.1"
+#define AppVersion "1.0.2"
 #define AppPublisher "RainWritesCode"
 #define AppURL "https://github.com/RainWritesCode/NomisKitchenHDT"
 
@@ -43,29 +43,32 @@ Name: "hdt";     Description: "HDT plugin only"
 Name: "custom";  Description: "Custom install";  Flags: iscustom
 
 [Components]
-Name: "hdt";     Description: "HDT plugin (APM overlay)";        Types: full hdt custom; Flags: fixed
-Name: "bepinex"; Description: "BepInEx runtime (if missing)";    Types: full custom
-Name: "apm";     Description: "APM provider (for the overlay)";  Types: full hdt custom
-Name: "numfix";  Description: "Disable abbreviation";            Types: full custom
+Name: "hdt";    Description: "HDT plugin (APM overlay)";       Types: full hdt custom; Flags: fixed
+Name: "apm";    Description: "APM provider (required for APM)"; Types: full hdt custom
+Name: "numfix"; Description: "Disable abbreviation";           Types: full custom
 
 [Files]
 Source: "..\bin\Release\NomisKitchenHDT.dll"; DestDir: "{app}"; Components: hdt; Flags: ignoreversion
 
 Source: "..\Resources\com.community.hs.NomiHatesAbbreviation.dll"; DestDir: "{code:GetHsDir}\BepInEx\plugins"; \
-    Components: numfix; Flags: ignoreversion external skipifsourcedoesntexist; \
+    Components: numfix; Flags: ignoreversion; \
     Check: HsDirIsValid
 
 Source: "..\Resources\com.community.hs.NomisKitchenApm.dll"; DestDir: "{code:GetHsDir}\BepInEx\plugins"; \
-    Components: apm; Flags: ignoreversion external skipifsourcedoesntexist; \
+    Components: apm; Flags: ignoreversion; \
     Check: HsDirIsValid
 
+; BepInEx runtime installs automatically whenever a game-side feature (APM or
+; number-fix) is selected and it is not already present. It is not an optional
+; box the user can forget, because APM and number-fix cannot run without it.
 Source: "BepInEx\*"; DestDir: "{code:GetHsDir}"; \
-    Components: bepinex; Flags: recursesubdirs createallsubdirs onlyifdoesntexist; \
-    Check: BepInExNotYetInstalled
+    Components: apm numfix; Flags: recursesubdirs createallsubdirs onlyifdoesntexist; \
+    Check: NeedBepInEx
 
 [Code]
 var
   HsDirPage: TInputDirWizardPage;
+  gNeedBepInEx: Boolean;
 
 function GetHsDir(Param: string): string;
 begin
@@ -128,7 +131,12 @@ var
   d: string;
 begin
   d := GetHsDir('');
-  Result := (d <> '') and FileExists(d + '\Hearthstone.exe') and not FileExists(d + '\winhttp.dll');
+  Result := (d <> '') and FileExists(d + '\Hearthstone.exe') and not FileExists(d + '\BepInEx\core\BepInEx.dll');
+end;
+
+function NeedBepInEx(): Boolean;
+begin
+  Result := gNeedBepInEx;
 end;
 
 procedure InitializeWizard();
@@ -144,7 +152,8 @@ begin
     ''
   );
   HsDirPage.Add('');
-  guess := GuessHsDir();
+  guess := ExpandConstant('{param:HSDIR|}');
+  if guess = '' then guess := GuessHsDir();
   if guess <> '' then
     HsDirPage.Values[0] := guess;
 end;
@@ -153,7 +162,7 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
   if PageID = HsDirPage.ID then begin
-    if not (WizardIsComponentSelected('numfix') or WizardIsComponentSelected('bepinex') or WizardIsComponentSelected('apm')) then
+    if not (WizardIsComponentSelected('numfix') or WizardIsComponentSelected('apm')) then
       Result := True;
   end;
 end;
@@ -161,14 +170,41 @@ end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   d: string;
+  needsGame: Boolean;
 begin
   Result := True;
   if CurPageID = HsDirPage.ID then begin
     d := HsDirPage.Values[0];
-    if d = '' then exit;
-    if not FileExists(d + '\Hearthstone.exe') then begin
-      MsgBox('No Hearthstone.exe in that folder. Pick the right one or clear the box to skip.', mbError, MB_OK);
+    needsGame := WizardIsComponentSelected('apm') or WizardIsComponentSelected('numfix');
+
+    if (d <> '') and not FileExists(d + '\Hearthstone.exe') then begin
+      if not WizardSilent() then MsgBox('No Hearthstone.exe in that folder. Pick the folder that contains Hearthstone.exe.', mbError, MB_OK);
       Result := False;
+      exit;
+    end;
+
+    // APM and number-fix cannot work without a valid Hearthstone folder, so do
+    // not let the user proceed with an empty path while those are selected.
+    if needsGame and (d = '') then begin
+      if not WizardSilent() then MsgBox('The APM overlay needs your Hearthstone folder to install its in-game component.' + #13#10 +
+             'Pick the folder that contains Hearthstone.exe (usually in Program Files (x86)\Hearthstone).', mbError, MB_OK);
+      Result := False;
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  d: string;
+begin
+  if CurStep = ssInstall then gNeedBepInEx := BepInExNotYetInstalled();
+  if CurStep = ssPostInstall then begin
+    if WizardIsComponentSelected('apm') then begin
+      d := GetHsDir('');
+      if (d <> '') and not FileExists(d + '\BepInEx\core\BepInEx.dll') then
+        if not WizardSilent() then MsgBox('Warning: BepInEx does not appear to be installed in:' + #13#10 + d + #13#10 +
+               'The APM overlay will show 0 until BepInEx is present. Re-run this installer and confirm the Hearthstone folder.',
+               mbError, MB_OK);
     end;
   end;
 end;

@@ -1,6 +1,6 @@
 #define AppName "Nomi's Kitchen"
 #define AppShortName "NomisKitchenHDT"
-#define AppVersion "1.0.2"
+#define AppVersion "1.0.3"
 #define AppPublisher "RainWritesCode"
 #define AppURL "https://github.com/RainWritesCode/NomisKitchenHDT"
 
@@ -61,7 +61,9 @@ Source: "..\Resources\com.community.hs.NomisKitchenApm.dll"; DestDir: "{code:Get
 ; BepInEx runtime installs automatically whenever a game-side feature (APM or
 ; number-fix) is selected and it is not already present. It is not an optional
 ; box the user can forget, because APM and number-fix cannot run without it.
-Source: "BepInEx\*"; DestDir: "{code:GetHsDir}"; \
+Source: "BepInEx\doorstop_config.ini"; DestDir: "{code:GetHsDir}"; Components: apm numfix; Flags: ignoreversion; Check: NeedBepInEx
+
+Source: "BepInEx\*"; DestDir: "{code:GetHsDir}"; Excludes: "doorstop_config.ini"; \
     Components: apm numfix; Flags: recursesubdirs createallsubdirs onlyifdoesntexist; \
     Check: NeedBepInEx
 
@@ -131,7 +133,7 @@ var
   d: string;
 begin
   d := GetHsDir('');
-  Result := (d <> '') and FileExists(d + '\Hearthstone.exe') and not FileExists(d + '\BepInEx\core\BepInEx.dll');
+  Result := (d <> '') and FileExists(d + '\Hearthstone.exe') and not (FileExists(d + '\BepInEx\core\BepInEx.dll') and FileExists(d + '\BepInEx\unstripped_corlib\mscorlib.dll'));
 end;
 
 function NeedBepInEx(): Boolean;
@@ -201,7 +203,7 @@ begin
   if CurStep = ssPostInstall then begin
     if WizardIsComponentSelected('apm') then begin
       d := GetHsDir('');
-      if (d <> '') and not FileExists(d + '\BepInEx\core\BepInEx.dll') then
+      if (d <> '') and not (FileExists(d + '\BepInEx\core\BepInEx.dll') and FileExists(d + '\BepInEx\unstripped_corlib\mscorlib.dll')) then
         if not WizardSilent() then MsgBox('Warning: BepInEx does not appear to be installed in:' + #13#10 + d + #13#10 +
                'The APM overlay will show 0 until BepInEx is present. Re-run this installer and confirm the Hearthstone folder.',
                mbError, MB_OK);

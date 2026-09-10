@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using NomisKitchenHDT.Utils;
 
 namespace NomisKitchenHDT.Services
 {
@@ -40,7 +41,7 @@ namespace NomisKitchenHDT.Services
         public void SyncWithSetting()
         {
             var pluginsFolder = ResolvePluginsFolder();
-            if (pluginsFolder == null) return;
+            if (pluginsFolder == null) { Log.Warn("Abbreviation-disabler: no Hearthstone BepInEx\\plugins folder found (config HearthstoneDir='" + _config.HearthstoneDir + "')."); return; }
 
             var target = Path.Combine(pluginsFolder, DeployedFileName);
             try
@@ -48,16 +49,17 @@ namespace NomisKitchenHDT.Services
                 if (_config.DisableAbbreviation) ExtractIfMissing(target);
                 else DeleteIfPresent(target);
             }
-            catch { }
+            catch (Exception ex) { Log.Error("Abbreviation-disabler sync failed", ex); }
         }
 
         private void ExtractIfMissing(string target)
         {
-            if (File.Exists(target)) return;
+            if (File.Exists(target)) { Log.Info("Abbreviation-disabler dll already present: " + target); return; }
             using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(EmbeddedResourceName);
             if (stream == null) return;
             using var file = File.Create(target);
             stream.CopyTo(file);
+            Log.Info("Abbreviation-disabler dll extracted to: " + target);
 
             var cache = Path.Combine(Path.GetDirectoryName(target) ?? "", "..", "cache", "chainloader_typeloader.dat");
             var full = Path.GetFullPath(cache);
@@ -66,7 +68,7 @@ namespace NomisKitchenHDT.Services
 
         private void DeleteIfPresent(string target)
         {
-            if (File.Exists(target)) File.Delete(target);
+            if (File.Exists(target)) { File.Delete(target); Log.Info("Abbreviation-disabler dll removed: " + target); }
         }
 
         public void Dispose() { }

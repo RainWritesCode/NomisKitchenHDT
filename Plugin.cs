@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using Hearthstone_Deck_Tracker.Plugins;
 using NomisKitchenHDT.Services;
 using NomisKitchenHDT.UI;
+using NomisKitchenHDT.Utils;
 
 namespace NomisKitchenHDT
 {
@@ -12,7 +13,7 @@ namespace NomisKitchenHDT
         public string Description => "Battlegrounds QoL: disable board number abbreviation, live APM overlay.";
         public string Author => "RainWritesCode";
         public string ButtonText => "Settings";
-        public Version Version => new Version(1, 0, 2);
+        public Version Version => new Version(1, 0, 3);
         public MenuItem MenuItem => _menuItem;
 
         MenuItem _menuItem;
@@ -29,6 +30,8 @@ namespace NomisKitchenHDT
         {
             Instance = this;
             Config = PluginConfig.Load();
+            Log.Info("=== Nomi's Kitchen v" + Version + " loading ===");
+            Log.Info("Config: HearthstoneDir='" + Config.HearthstoneDir + "' ShowApmOverlay=" + Config.ShowApmOverlay + " DisableAbbreviation=" + Config.DisableAbbreviation + " LockOverlay=" + Config.LockOverlay + " AutoCheckUpdates=" + Config.AutoCheckUpdates + " Log=" + Log.FilePath);
 
             Disabler = new AbbreviationDisabler(Config);
             Disabler.SyncWithSetting();
@@ -40,6 +43,7 @@ namespace NomisKitchenHDT
             Tracker.Start();
 
             Overlay = new ApmOverlay(Config, Tracker);
+            Log.Info("Overlay created; ShowApmOverlay=" + Config.ShowApmOverlay);
             if (Config.ShowApmOverlay)
                 Overlay.Show();
 
@@ -54,6 +58,7 @@ namespace NomisKitchenHDT
         async System.Threading.Tasks.Task CheckAndPromptAsync()
         {
             var available = await Updater.CheckAsync();
+            Log.Info(available ? ("Update available: v" + Updater.LatestVersion) : "Update check: up to date, or check failed");
             if (!available) return;
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             if (dispatcher == null) return;
@@ -75,7 +80,7 @@ namespace NomisKitchenHDT
         public void OnUnload()
         {
             Overlay?.Hide();
-            Tracker?.Stop();
+            Log.Info("Nomi's Kitchen unloading"); Tracker?.Stop();
             Disabler?.Dispose();
             Config?.Save();
         }
@@ -85,6 +90,7 @@ namespace NomisKitchenHDT
 
         void OpenSettings()
         {
+            Log.Info("Settings opened");
             var win = new SettingsWindow(Config, Updater);
             win.StyleApplied += () => Overlay?.ApplyStyle();
             win.Closed += (_, _1) =>

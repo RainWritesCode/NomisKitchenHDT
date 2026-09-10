@@ -15,6 +15,8 @@ namespace NomisKitchenHDT.Services
         MemoryMappedViewAccessor _accessor;
         Timer _timer;
         readonly byte[] _buffer = new byte[MmfSize];
+        bool? _lastConnectedLogged;
+        bool _loggedFirstRead;
 
         public bool InGame { get; private set; }
         public int ActionsThisTurn { get; private set; }
@@ -26,6 +28,7 @@ namespace NomisKitchenHDT.Services
 
         public void Start()
         {
+            Log.Info("ApmTracker started: polling shared memory 'NomisKitchenApm' every 500ms");
             _timer = new Timer(500) { AutoReset = true };
             _timer.Elapsed += (_, _1) => Tick();
             _timer.Start();
@@ -36,13 +39,27 @@ namespace NomisKitchenHDT.Services
             _timer?.Stop();
             _timer?.Dispose();
             _timer = null;
+            Log.Info("ApmTracker stopped");
             try { _accessor?.Dispose(); _accessor = null; } catch { }
             try { _mmf?.Dispose(); _mmf = null; } catch { }
         }
 
         void Tick()
         {
-            if (_accessor == null && !TryOpen()) return;
+            if (_accessor == null && !TryOpen())
+            {
+                if (_lastConnectedLogged != false)
+                {
+                    Log.Warn("APM provider NOT found: shared memory 'NomisKitchenApm' does not exist. BepInEx is not running inside Hearthstone, or com.community.hs.NomisKitchenApm.dll is not loaded. Overlay will show 0.");
+                    _lastConnectedLogged = false;
+                }
+                return;
+            }
+            if (_lastConnectedLogged != true)
+            {
+                Log.Info("APM provider connected: shared memory opened.");
+                _lastConnectedLogged = true;
+            }
             try
             {
                 _accessor.ReadArray(0, _buffer, 0, MmfSize);
@@ -51,6 +68,7 @@ namespace NomisKitchenHDT.Services
                 if (len == 0) { InGame = false; return; }
 
                 var json = Encoding.UTF8.GetString(_buffer, 0, len);
+                if (!_loggedFirstRead) { Log.Info("First APM frame: " + json); _loggedFirstRead = true; }
                 InGame = JsonUtils.ParseBool(json, "inGame");
                 ActionsThisTurn = JsonUtils.ParseInt(json, "actionsThisTurn");
                 CurrentApm = JsonUtils.ParseDouble(json, "currentApm");
@@ -61,7 +79,7 @@ namespace NomisKitchenHDT.Services
             }
             catch
             {
-                try { _accessor?.Dispose(); _accessor = null; _mmf?.Dispose(); _mmf = null; } catch { }
+                Log.Warn("APM read failed; dropping connection, will retry."); _lastConnectedLogged = null; try { _accessor?.Dispose(); _accessor = null; _mmf?.Dispose(); _mmf = null; } catch { }
             }
         }
 

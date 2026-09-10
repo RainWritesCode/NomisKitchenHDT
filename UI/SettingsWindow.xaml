@@ -94,6 +94,7 @@
                       Foreground="White" Margin="0,12,0,4"/>
             <StackPanel Orientation="Horizontal">
                 <Button x:Name="CheckUpdateButton" Content="Check for updates" Width="140" Click="OnCheckUpdate"/>
+                <Button x:Name="OpenLogButton" Content="Open log" Width="90" Margin="8,0,0,0" Click="OnOpenLog"/>
                 <Button x:Name="UpdateButton" Content="Download update" Width="140" Margin="8,0,0,0"
                         Click="OnDownloadUpdate" Visibility="Collapsed"/>
                 <TextBlock x:Name="UpdateStatusText" Foreground="#B8B8B8" FontSize="12"

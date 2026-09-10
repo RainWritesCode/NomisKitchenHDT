@@ -51,7 +51,7 @@ namespace NomisKitchenHDT
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath));
-                File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(this, Formatting.Indented));
+                File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented));
             }
             catch { }
         }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using NomisKitchenHDT.Utils;
 
 namespace NomisKitchenHDT.Services
 {
@@ -21,22 +22,23 @@ namespace NomisKitchenHDT.Services
         public void EnsureInstalled()
         {
             var pluginsFolder = ResolvePluginsFolder();
-            if (pluginsFolder == null) return;
+            if (pluginsFolder == null) { Log.Warn("APM provider install: no Hearthstone BepInEx\\plugins folder found (config HearthstoneDir='" + _config.HearthstoneDir + "'). BepInEx is not installed, or the Hearthstone folder is wrong."); return; }
             var target = Path.Combine(pluginsFolder, DeployedFileName);
-            if (File.Exists(target)) return;
+            if (File.Exists(target)) { Log.Info("APM provider dll already present: " + target); return; }
 
             try
             {
                 using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(EmbeddedResourceName);
-                if (stream == null) return;
+                if (stream == null) { Log.Error("APM provider: embedded resource missing: " + EmbeddedResourceName); return; }
                 using var file = File.Create(target);
                 stream.CopyTo(file);
+                Log.Info("APM provider dll extracted to: " + target);
 
                 var cache = Path.Combine(Path.GetDirectoryName(target) ?? "", "..", "cache", "chainloader_typeloader.dat");
                 var full = Path.GetFullPath(cache);
                 if (File.Exists(full)) File.Delete(full);
             }
-            catch { }
+            catch (Exception ex) { Log.Error("APM provider install failed", ex); }
         }
 
         string ResolvePluginsFolder()

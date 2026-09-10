@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -131,6 +132,17 @@ namespace NomisKitchenHDT.UI
             _config.Save();
             StyleApplied?.Invoke();
             Close();
+        }
+
+        void OnOpenLog(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var p = Utils.Log.FilePath;
+                if (!File.Exists(p)) File.WriteAllText(p, "");
+                System.Diagnostics.Process.Start("notepad.exe", "\"" + p + "\"");
+            }
+            catch { }
         }
 
         async void OnCheckUpdate(object sender, RoutedEventArgs e)

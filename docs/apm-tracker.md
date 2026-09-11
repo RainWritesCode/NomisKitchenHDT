@@ -10,7 +10,7 @@ The HDT plugin on the other hand just receives said data and displays it in the 
 ## Installation
 Wheneever the NomiKitchen plugin is initialized by the HDT the of the `Plugin.OnLoad()` is called. This method instantiates the `ApmProviderInstaller` class and immediately calls `.EnsureInstalled()` method of it. Said method checks for the existence of the shipped DLL in the proper location folder. If none exists then one is placed into said folder.
 
-> If there is no HS location in the config class the plugin also check for a few of the most common locations to try to determine the location on its own
+> If there is no Hearthstone BepInEx location in the config class the plugin also check for a few of the most common locations to try to determine the location on its own
 
 > [GAP] If there already is a `.dll` updating said `.dll` currently would require user's involvement. And said deletion would require user to locate the plugins folder and delete existing `.dll` so that `ApmProviderInstaller` will recreate the newer version of it on the next `.OnLoad()`
 
@@ -101,3 +101,4 @@ The JSON structure is as follows:
 * HDT - Hearthstone Deck Tracker
 * IPC - Inter-Process Communication
 * MMF - Memory Mapped File
+* BepInEx - [Bepis Injector Extensible](https://github.com/bepinex/bepinex)

@@ -12,7 +12,7 @@ Wheneever the NomiKitchen plugin is initialized by the HDT the of the `Plugin.On
 
 > If there is no Hearthstone BepInEx location in the config class the plugin also check for a few of the most common locations to try to determine the location on its own
 
-> [GAP] If there already is a `.dll` updating said `.dll` currently would require user's involvement. And said deletion would require user to locate the plugins folder and delete existing `.dll` so that `ApmProviderInstaller` will recreate the newer version of it on the next `.OnLoad()`
+> [GAP] If there already is a `.dll` updating said `.dll` currently would require user's involvement. And said involvement would require user to locate the plugins folder and delete existing `.dll` so that `ApmProviderInstaller` will recreate the newer version of it on the next `.OnLoad()`
 
 ## HS Plugin
 This is a Unity plugin and it extends the Unity's MonoBehavior class.

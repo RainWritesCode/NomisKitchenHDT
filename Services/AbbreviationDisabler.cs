@@ -13,6 +13,7 @@ namespace NomisKitchenHDT.Services
             "com.community.hs.NomiHatesAbbreviation.dll";
 
         private readonly PluginConfig _config;
+        public string LastError { get; private set; }
 
         public AbbreviationDisabler(PluginConfig config)
         {
@@ -46,10 +47,11 @@ namespace NomisKitchenHDT.Services
             var target = Path.Combine(pluginsFolder, DeployedFileName);
             try
             {
+                LastError = null;
                 if (_config.DisableAbbreviation) ExtractIfMissing(target);
                 else DeleteIfPresent(target);
             }
-            catch (Exception ex) { Log.Error("Abbreviation-disabler sync failed", ex); }
+            catch (Exception ex) { LastError = (ex is UnauthorizedAccessException || ex is IOException) ? "Could not change the abbreviation dll. Close Hearthstone and try again." : ex.Message; Log.Error("Abbreviation-disabler sync failed", ex); }
         }
 
         private void ExtractIfMissing(string target)

@@ -31,8 +31,8 @@ namespace NomisKitchenHDT.UI
             AutoUpdateCheck.Unchecked += (_, _1) => { _config.AutoCheckUpdates = false; _config.Save(); };
             if (_updater != null && _updater.UpdateAvailable) ShowUpdateAvailable();
 
-            DisableAbbreviationCheck.Checked += (_, _1) => { _config.DisableAbbreviation = true; UpdateStatus(); };
-            DisableAbbreviationCheck.Unchecked += (_, _1) => { _config.DisableAbbreviation = false; UpdateStatus(); };
+            DisableAbbreviationCheck.Checked += (_, _1) => { _config.DisableAbbreviation = true; Plugin.Instance?.Disabler?.SyncWithSetting(); UpdateStatus(); };
+            DisableAbbreviationCheck.Unchecked += (_, _1) => { _config.DisableAbbreviation = false; Plugin.Instance?.Disabler?.SyncWithSetting(); UpdateStatus(); };
             ShowApmCheck.Checked += (_, _1) => _config.ShowApmOverlay = true;
             ShowApmCheck.Unchecked += (_, _1) => _config.ShowApmOverlay = false;
             LockOverlayCheck.Checked += (_, _1) => { _config.LockOverlay = true; StyleApplied?.Invoke(); };
@@ -76,6 +76,8 @@ namespace NomisKitchenHDT.UI
             StatusText.Text = _config.DisableAbbreviation
                 ? "Abbreviation off. Restart Hearthstone to apply."
                 : "Abbreviation on (default 1.2k style).";
+            var err = Plugin.Instance?.Disabler?.LastError;
+            if (!string.IsNullOrEmpty(err)) StatusText.Text += " " + err;
         }
 
         void OnLiveChange(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -132,6 +134,11 @@ namespace NomisKitchenHDT.UI
             _config.Save();
             StyleApplied?.Invoke();
             Close();
+        }
+
+        void OnResetPosition(object sender, RoutedEventArgs e)
+        {
+            Plugin.Instance?.Overlay?.ResetPosition();
         }
 
         void OnOpenLog(object sender, RoutedEventArgs e)

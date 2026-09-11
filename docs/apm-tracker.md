@@ -8,12 +8,11 @@ The HS plugin actually collects game data, events and other metrics. It is also 
 The HDT plugin on the other hand just receives said data and displays it in the UI based on the user's settings.
 
 ## Installation
-When user enables the feature the HDT plugin checks for the existence of the shipped DLL in the proper location folder. If none exists then one is placed into said folder.
-When the feature is disabled by user HDT plugin removes the HS plugin `.dll` if it still exists.
+Wheneever the NomiKitchen plugin is initialized by the HDT the of the `Plugin.OnLoad()` is called. This method instantiates the `ApmProviderInstaller` class and immediately calls `.EnsureInstalled()` method of it. Said method checks for the existence of the shipped DLL in the proper location folder. If none exists then one is placed into said folder.
 
-> If there is no HS location provided by the HDT the plugin also check for a few of the most common locations to try to determine the location on its own
+> If there is no HS location in the config class the plugin also check for a few of the most common locations to try to determine the location on its own
 
-> [GAP] If there already is a `.dll` updating said `.dll` currently would require user to disable and reenable the functionality. In order for the HDT plugin to cleanup old file and replace it with the new one.
+> [GAP] If there already is a `.dll` updating said `.dll` currently would require user's involvement. And said deletion would require user to locate the plugins folder and delete existing `.dll` so that `ApmProviderInstaller` will recreate the newer version of it on the next `.OnLoad()`
 
 ## HS Plugin
 This is a Unity plugin and it extends the Unity's MonoBehavior class.
@@ -31,6 +30,7 @@ On every call of the `.Update()` method of the ApmBehavior class the current dif
 ##### .SampleApm()
 
 Checks for the game to exists and for the game to be in proper phase for the sampling to make sense. Then, values such as mana and cards both on board and in hand are fetched and based on this the assumptions on the amount of actions performed are made. After all is done, these values are stored for the next tick to compare to and for accessibility in the `.WriteStats()`.
+> [TODO] Properly describe APM sampling logic here
 
 ##### .WriteStats()
 Takes values from members of the class internal memory and writes them in the JSON format to a MMF.

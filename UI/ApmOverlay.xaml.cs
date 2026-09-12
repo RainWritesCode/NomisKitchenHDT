@@ -136,13 +136,13 @@ namespace NomisKitchenHDT.UI
                 RootBorder.LayoutTransform = new ScaleTransform(_config.OverlayScale, _config.OverlayScale);
                 RootBorder.Cursor = _config.LockOverlay ? Cursors.Arrow : Cursors.SizeAll;
 
-                foreach (var lbl in new[] { LabelActions, LabelPeak, LabelAverage })
+                foreach (var lbl in new[] { LabelActions, LabelPeak, LabelAverage, LabelGamePeak, GamePeakTurnText })
                 {
                     lbl.FontFamily = font;
                     lbl.FontSize = _config.LabelFontSize;
                     lbl.Foreground = labelBrush;
                 }
-                foreach (var v in new[] { ActionsText, PeakText, AverageText })
+                foreach (var v in new[] { ActionsText, PeakText, AverageText, GamePeakText })
                 {
                     v.FontFamily = font;
                     v.FontSize = _config.ValueFontSize;
@@ -152,6 +152,9 @@ namespace NomisKitchenHDT.UI
                 OverlayExtensions.SetIsOverlayHitTestVisible(this, !_config.LockOverlay);
             }
             catch (Exception ex) { Log.Error("ApplyStyle failed", ex); }
+            var gp = _config.ShowGamePeak ? Visibility.Visible : Visibility.Collapsed;
+            LabelGamePeak.Visibility = gp;
+            GamePeakPanel.Visibility = gp;
         }
 
         void UpdateFromTracker()
@@ -163,6 +166,8 @@ namespace NomisKitchenHDT.UI
                 ActionsText.Text = _tracker.ActionsThisTurn.ToString(CultureInfo.InvariantCulture);
                 PeakText.Text = _tracker.PeakApm.ToString(fmt, CultureInfo.InvariantCulture);
                 AverageText.Text = _tracker.AverageApm.ToString(fmt, CultureInfo.InvariantCulture);
+                GamePeakText.Text = _tracker.GamePeakApm.ToString(fmt, CultureInfo.InvariantCulture);
+                GamePeakTurnText.Text = _tracker.GamePeakTurn > 0 ? "T" + _tracker.GamePeakTurn.ToString(CultureInfo.InvariantCulture) : "";
             }));
         }
 

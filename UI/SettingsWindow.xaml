@@ -24,6 +24,8 @@
                       Foreground="White" Margin="0,4"/>
             <CheckBox x:Name="ShowApmCheck" Content="Show APM overlay"
                       Foreground="White" Margin="0,4"/>
+            <CheckBox x:Name="ShowGamePeakCheck" Content="Show peak APM this game (with turn)"
+                      Foreground="White" Margin="0,4"/>
             <CheckBox x:Name="LockOverlayCheck" Content="Lock overlay (clicks pass through to game)"
                       Foreground="White" Margin="0,4"/>
         </StackPanel>

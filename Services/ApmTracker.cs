@@ -23,6 +23,8 @@ namespace NomisKitchenHDT.Services
         public double CurrentApm { get; private set; }
         public double PeakApm { get; private set; }
         public double AverageApm { get; private set; }
+        public double GamePeakApm { get; private set; }
+        public int GamePeakTurn { get; private set; }
 
         public event Action OnStatsUpdated;
 
@@ -74,6 +76,8 @@ namespace NomisKitchenHDT.Services
                 CurrentApm = JsonUtils.ParseDouble(json, "currentApm");
                 PeakApm = JsonUtils.ParseDouble(json, "peakApm");
                 AverageApm = JsonUtils.ParseDouble(json, "averageApm");
+                GamePeakApm = JsonUtils.ParseDouble(json, "gamePeakApm");
+                GamePeakTurn = JsonUtils.ParseInt(json, "gamePeakTurn");
 
                 OnStatsUpdated?.Invoke();
             }

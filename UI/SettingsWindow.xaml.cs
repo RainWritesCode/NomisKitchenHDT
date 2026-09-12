@@ -37,6 +37,8 @@ namespace NomisKitchenHDT.UI
             ShowApmCheck.Unchecked += (_, _1) => _config.ShowApmOverlay = false;
             LockOverlayCheck.Checked += (_, _1) => { _config.LockOverlay = true; StyleApplied?.Invoke(); };
             LockOverlayCheck.Unchecked += (_, _1) => { _config.LockOverlay = false; StyleApplied?.Invoke(); };
+            ShowGamePeakCheck.Checked += (_, _1) => { _config.ShowGamePeak = true; _config.Save(); StyleApplied?.Invoke(); };
+            ShowGamePeakCheck.Unchecked += (_, _1) => { _config.ShowGamePeak = false; _config.Save(); StyleApplied?.Invoke(); };
 
             FontCombo.SelectionChanged += (_, _1) => OnLiveChange(null, null);
             BackgroundField.ColorChanged += OnColorChanged;
@@ -52,6 +54,7 @@ namespace NomisKitchenHDT.UI
             DisableAbbreviationCheck.IsChecked = _config.DisableAbbreviation;
             ShowApmCheck.IsChecked = _config.ShowApmOverlay;
             LockOverlayCheck.IsChecked = _config.LockOverlay;
+            ShowGamePeakCheck.IsChecked = _config.ShowGamePeak;
             FontCombo.SelectedItem = _config.FontFamily;
             if (FontCombo.SelectedItem == null && FontCombo.Items.Count > 0)
                 FontCombo.SelectedIndex = 0;

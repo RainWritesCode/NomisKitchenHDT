@@ -8,6 +8,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -25,6 +26,13 @@
                        FontWeight="Bold" VerticalAlignment="Center" Margin="0,6,0,0"/>
             <TextBlock Grid.Row="2" Grid.Column="1" x:Name="AverageText" Text="0"
                        FontWeight="Bold" Margin="14,6,0,0" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" x:Name="LabelGamePeak" Text="PEAK APM THIS GAME"
+                       FontWeight="Bold" VerticalAlignment="Center" Margin="0,6,0,0"/>
+            <StackPanel Grid.Row="3" Grid.Column="1" x:Name="GamePeakPanel" Orientation="Horizontal"
+                        Margin="14,6,0,0" VerticalAlignment="Center">
+                <TextBlock x:Name="GamePeakText" Text="0" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="GamePeakTurnText" Text="" FontWeight="Bold" VerticalAlignment="Bottom" Margin="6,0,0,3"/>
+            </StackPanel>
         </Grid>
     </Border>
 </UserControl>

@@ -8,6 +8,7 @@ namespace NomisKitchenHDT
     {
         public bool DisableAbbreviation { get; set; } = false;
         public bool ShowApmOverlay { get; set; } = true;
+        public bool ShowGamePeak { get; set; } = true;
 
         public double OverlayX { get; set; } = 40;
         public double OverlayY { get; set; } = 40;

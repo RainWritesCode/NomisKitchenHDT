@@ -1,6 +1,6 @@
 #define AppName "Nomi's Kitchen"
 #define AppShortName "NomisKitchenHDT"
-#define AppVersion "1.0.4"
+#define AppVersion "1.0.5"
 #define AppPublisher "RainWritesCode"
 #define AppURL "https://github.com/RainWritesCode/NomisKitchenHDT"
 

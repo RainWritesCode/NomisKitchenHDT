@@ -4,6 +4,7 @@ A Hearthstone Deck Tracker plugin for Battlegrounds streamers. Ships two quality
 
 - **APM overlay** : a small draggable card showing your live actions-per-minute, peak APM, and average APM. Same algorithm as Firestone's overlay.
 - **Disable abbreviation** : an in-game change that disabled abbreviated number `1.2k` / `5M` of attack and health values back into full digits. Ships a small BepInEx plugin under the hood and you can turn it on and off from the settings window.
+- **Fix Minion Dance** : A solution for minions dancing in hearthstone and swapping around and becoming out of position (This is in early alpha and experimental, if you have issues please provide logs).
 
 ## Install
 

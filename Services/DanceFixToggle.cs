@@ -1,0 +1,79 @@
+using System;
+using System.IO;
+using System.Reflection;
+using NomisKitchenHDT.Utils;
+
+namespace NomisKitchenHDT.Services
+{
+    /// <summary>Experimental minion dance fix: drops NomiCantDance into BepInEx/plugins when on, removes it when off.</summary>
+    public class DanceFixToggle : IDisposable
+    {
+        private const string EmbeddedResourceName =
+            "NomisKitchenHDT.Resources.com.community.hs.NomiCantDance.dll";
+        private const string DeployedFileName =
+            "com.community.hs.NomiCantDance.dll";
+
+        private readonly PluginConfig _config;
+        public string LastError { get; private set; }
+
+        public DanceFixToggle(PluginConfig config)
+        {
+            _config = config;
+        }
+
+        public string ResolvePluginsFolder()
+        {
+            if (!string.IsNullOrEmpty(_config.HearthstoneDir))
+            {
+                var p = Path.Combine(_config.HearthstoneDir, "BepInEx", "plugins");
+                if (Directory.Exists(p)) return p;
+            }
+            foreach (var candidate in new[]
+            {
+                @"C:\Program Files (x86)\Hearthstone",
+                @"C:\Program Files\Hearthstone",
+            })
+            {
+                var p = Path.Combine(candidate, "BepInEx", "plugins");
+                if (Directory.Exists(p)) return p;
+            }
+            return null;
+        }
+
+        public void SyncWithSetting()
+        {
+            var pluginsFolder = ResolvePluginsFolder();
+            if (pluginsFolder == null) { Log.Warn("Dance fix: no Hearthstone BepInEx\\plugins folder found (config HearthstoneDir='" + _config.HearthstoneDir + "')."); return; }
+
+            var target = Path.Combine(pluginsFolder, DeployedFileName);
+            try
+            {
+                LastError = null;
+                if (_config.FixMinionDance) ExtractIfMissing(target);
+                else DeleteIfPresent(target);
+            }
+            catch (Exception ex) { LastError = (ex is UnauthorizedAccessException || ex is IOException) ? "Could not change the dance fix dll. Close Hearthstone and try again." : ex.Message; Log.Error("Dance fix sync failed", ex); }
+        }
+
+        private void ExtractIfMissing(string target)
+        {
+            if (File.Exists(target)) { Log.Info("Dance fix dll already present: " + target); return; }
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(EmbeddedResourceName);
+            if (stream == null) return;
+            using var file = File.Create(target);
+            stream.CopyTo(file);
+            Log.Info("Dance fix dll extracted to: " + target);
+
+            var cache = Path.Combine(Path.GetDirectoryName(target) ?? "", "..", "cache", "chainloader_typeloader.dat");
+            var full = Path.GetFullPath(cache);
+            if (File.Exists(full)) File.Delete(full);
+        }
+
+        private void DeleteIfPresent(string target)
+        {
+            if (File.Exists(target)) { File.Delete(target); Log.Info("Dance fix dll removed: " + target); }
+        }
+
+        public void Dispose() { }
+    }
+}

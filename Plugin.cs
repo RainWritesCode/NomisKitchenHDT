@@ -10,10 +10,10 @@ namespace NomisKitchenHDT
     public class Plugin : IPlugin
     {
         public string Name => "Nomi's Kitchen";
-        public string Description => "Battlegrounds QoL: disable board number abbreviation, live APM overlay.";
+        public string Description => "Battlegrounds QoL: disable board number abbreviation, live APM overlay, experimental minion dance fix.";
         public string Author => "RainWritesCode";
         public string ButtonText => "Settings";
-        public Version Version => new Version(1, 0, 5);
+        public Version Version => new Version(1, 0, 6);
         public MenuItem MenuItem => _menuItem;
 
         MenuItem _menuItem;
@@ -21,6 +21,7 @@ namespace NomisKitchenHDT
         internal ApmTracker Tracker;
         internal ApmOverlay Overlay;
         internal AbbreviationDisabler Disabler;
+        internal DanceFixToggle DanceFix;
         internal ApmProviderInstaller ApmInstaller;
         internal UpdateChecker Updater;
 
@@ -31,10 +32,13 @@ namespace NomisKitchenHDT
             Instance = this;
             Config = PluginConfig.Load();
             Log.Info("=== Nomi's Kitchen v" + Version + " loading ===");
-            Log.Info("Config: HearthstoneDir='" + Config.HearthstoneDir + "' ShowApmOverlay=" + Config.ShowApmOverlay + " DisableAbbreviation=" + Config.DisableAbbreviation + " LockOverlay=" + Config.LockOverlay + " AutoCheckUpdates=" + Config.AutoCheckUpdates + " Log=" + Log.FilePath);
+            Log.Info("Config: HearthstoneDir='" + Config.HearthstoneDir + "' ShowApmOverlay=" + Config.ShowApmOverlay + " DisableAbbreviation=" + Config.DisableAbbreviation + " FixMinionDance=" + Config.FixMinionDance + " LockOverlay=" + Config.LockOverlay + " AutoCheckUpdates=" + Config.AutoCheckUpdates + " Log=" + Log.FilePath);
 
             Disabler = new AbbreviationDisabler(Config);
             Disabler.SyncWithSetting();
+
+            DanceFix = new DanceFixToggle(Config);
+            DanceFix.SyncWithSetting();
 
             ApmInstaller = new ApmProviderInstaller(Config);
             ApmInstaller.EnsureInstalled();
@@ -82,6 +86,7 @@ namespace NomisKitchenHDT
             Overlay?.Hide();
             Log.Info("Nomi's Kitchen unloading"); Tracker?.Stop();
             Disabler?.Dispose();
+            DanceFix?.Dispose();
             Config?.Save();
         }
 
@@ -97,6 +102,7 @@ namespace NomisKitchenHDT
             {
                 Config.Save();
                 Disabler.SyncWithSetting();
+                DanceFix.SyncWithSetting();
                 if (Config.ShowApmOverlay) Overlay.Show(); else Overlay.Hide();
                 Overlay?.ApplyStyle();
             };

@@ -22,6 +22,10 @@
             <CheckBox x:Name="DisableAbbreviationCheck"
                       Content="Disable abbreviation (needs Hearthstone restart)"
                       Foreground="White" Margin="0,4"/>
+            <CheckBox x:Name="FixMinionDanceCheck"
+                      Content="Fix minion dance (experimental, needs Hearthstone restart)"
+                      ToolTip="Stops shop minions sliding back and forth when you play fast."
+                      Foreground="White" Margin="0,4"/>
             <CheckBox x:Name="ShowApmCheck" Content="Show APM overlay"
                       Foreground="White" Margin="0,4"/>
             <CheckBox x:Name="ShowGamePeakCheck" Content="Show peak APM this game (with turn)"

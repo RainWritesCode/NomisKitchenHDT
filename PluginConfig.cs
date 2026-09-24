@@ -7,6 +7,8 @@ namespace NomisKitchenHDT
     public class PluginConfig
     {
         public bool DisableAbbreviation { get; set; } = false;
+        /// <summary>Experimental: the minion dance fix (NomiCantDance). Off by default.</summary>
+        public bool FixMinionDance { get; set; } = false;
         public bool ShowApmOverlay { get; set; } = true;
         public bool ShowGamePeak { get; set; } = true;
 

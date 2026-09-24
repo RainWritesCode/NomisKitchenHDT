@@ -33,6 +33,8 @@ namespace NomisKitchenHDT.UI
 
             DisableAbbreviationCheck.Checked += (_, _1) => { _config.DisableAbbreviation = true; Plugin.Instance?.Disabler?.SyncWithSetting(); UpdateStatus(); };
             DisableAbbreviationCheck.Unchecked += (_, _1) => { _config.DisableAbbreviation = false; Plugin.Instance?.Disabler?.SyncWithSetting(); UpdateStatus(); };
+            FixMinionDanceCheck.Checked += (_, _1) => { _config.FixMinionDance = true; Plugin.Instance?.DanceFix?.SyncWithSetting(); UpdateStatus(); };
+            FixMinionDanceCheck.Unchecked += (_, _1) => { _config.FixMinionDance = false; Plugin.Instance?.DanceFix?.SyncWithSetting(); UpdateStatus(); };
             ShowApmCheck.Checked += (_, _1) => _config.ShowApmOverlay = true;
             ShowApmCheck.Unchecked += (_, _1) => _config.ShowApmOverlay = false;
             LockOverlayCheck.Checked += (_, _1) => { _config.LockOverlay = true; StyleApplied?.Invoke(); };
@@ -52,6 +54,7 @@ namespace NomisKitchenHDT.UI
             var wasLoading = _loading;
             _loading = true;
             DisableAbbreviationCheck.IsChecked = _config.DisableAbbreviation;
+            FixMinionDanceCheck.IsChecked = _config.FixMinionDance;
             ShowApmCheck.IsChecked = _config.ShowApmOverlay;
             LockOverlayCheck.IsChecked = _config.LockOverlay;
             ShowGamePeakCheck.IsChecked = _config.ShowGamePeak;
@@ -81,6 +84,9 @@ namespace NomisKitchenHDT.UI
                 : "Abbreviation on (default 1.2k style).";
             var err = Plugin.Instance?.Disabler?.LastError;
             if (!string.IsNullOrEmpty(err)) StatusText.Text += " " + err;
+            if (_config.FixMinionDance) StatusText.Text += " Minion dance fix on (experimental). Restart Hearthstone to apply.";
+            var danceErr = Plugin.Instance?.DanceFix?.LastError;
+            if (!string.IsNullOrEmpty(danceErr)) StatusText.Text += " " + danceErr;
         }
 
         void OnLiveChange(object sender, RoutedPropertyChangedEventArgs<double> e)

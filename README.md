@@ -1,6 +1,6 @@
 # Nomi's Kitchen
 
-A Hearthstone Deck Tracker plugin for Battlegrounds streamers. Ships two quality-of-life features:
+A Hearthstone Deck Tracker plugin for Battlegrounds streamers. Ships three quality-of-life features:
 
 - **APM overlay** : a small draggable card showing your live actions-per-minute, peak APM, and average APM. Same algorithm as Firestone's overlay.
 - **Disable abbreviation** : an in-game change that disabled abbreviated number `1.2k` / `5M` of attack and health values back into full digits. Ships a small BepInEx plugin under the hood and you can turn it on and off from the settings window.

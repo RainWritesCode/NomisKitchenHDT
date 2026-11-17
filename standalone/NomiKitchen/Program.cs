@@ -12,8 +12,30 @@ static class Program
         // Headless check used by testing: exercises install, uninstall and config edits.
         if (args.Length >= 2 && args[0] == "--selftest") return SelfTest(args[1]);
 
+        // Headless update used by UpdateNomi.ps1: reinstalls every mod that is already installed.
+        if (args.Length >= 2 && args[0] == "--update") return UpdateInstalled(args[1]);
+
         ApplicationConfiguration.Initialize();
         Application.Run(new MainForm(hs));
+        return 0;
+    }
+
+    static int UpdateInstalled(string hs)
+    {
+        if (Installer.HearthstoneRunning())
+        {
+            Console.WriteLine("Hearthstone is running. Close it and run again.");
+            return 2;
+        }
+        int updated = 0;
+        foreach (var p in Plugins.All)
+        {
+            if (!Installer.IsInstalled(hs, p)) continue;
+            Installer.Install(hs, p);
+            Console.WriteLine($"Updated {p.Id}");
+            updated++;
+        }
+        Console.WriteLine($"{updated} mod(s) updated");
         return 0;
     }
 
